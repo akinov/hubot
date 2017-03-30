@@ -40,6 +40,12 @@ module.exports = (robot) ->
     robot.logger.info(robot.brain.get(key))
     res.send "ok"
 
+  robot.respond /task clear/i, (res) ->
+    # keyを設定
+    user = res.message.user.name
+    key = "#{user}Task"
+    robot.brain.remove(key)
+
   robot.respond /task$/i, (res) ->
     # keyを設定
     user = res.message.user.name
