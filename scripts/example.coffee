@@ -46,6 +46,17 @@ module.exports = (robot) ->
     key = "#{user}Task"
     robot.brain.remove(key)
 
+  robot.respond /task (\d+) del/i, (res) ->
+    i = res.match[1]
+    # keyを設定
+    user = res.message.user.name
+    key = "#{user}Task"
+    tasks = robot.brain.get(key) ? [] # keyを元に全要素を持ってくる。なければ空Objectをセット
+    task = tasks[i]
+    tasks.splice(i, 1)
+    robot.brain.set key, tasks
+    res.send "del #{task.task}"
+
   robot.respond /task$/i, (res) ->
     # keyを設定
     user = res.message.user.name
@@ -53,7 +64,7 @@ module.exports = (robot) ->
 
     tasks = robot.brain.get(key) ? []
     message = tasks.map (task, i) ->
-      "[#{i}] #{task.task}\t\t登録日:#{task.created}"
+      "[#{i}] #{task.task}\t\t登録日:#{task.created.slice(5)}"
     .join '\n'
     res.send "#{message}"
 
