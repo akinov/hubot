@@ -5,6 +5,7 @@
   "author": "akinov",
   "description": "super neko",
   "dependencies": {
+    "firebase": "^3.7.5",
     "hubot": "^2.19.0",
     "hubot-diagnostics": "0.0.1",
     "hubot-google-images": "^0.2.6",
