@@ -1,4 +1,10 @@
 # 時刻を受け取ってYYYY-mm-dd形式で返す
+toYmDate = (date) ->
+  Y = date.getFullYear()
+  m = ('0' + (date.getMonth() + 1)).slice(-2)
+  d = ('0' + date.getDate()).slice(-2)
+  return "#{Y}/#{m}"
+
 toYmdDate = (date) ->
   Y = date.getFullYear()
   m = ('0' + (date.getMonth() + 1)).slice(-2)
@@ -30,6 +36,7 @@ firebase.initializeApp config
 db = firebase.database()
 Task = db.ref "tasks"
 TimeTracker = db.ref "timeTrackers"
+Souji = db.ref "soujis"
 
 
 module.exports = (robot) ->
@@ -45,21 +52,38 @@ module.exports = (robot) ->
       created: date.getTime() }
     res.send "ok"
 
+  robot.respond /(souji|soji|掃除|そうじ) (.+)?/i, (res) ->
+    user = res.message.user.name.toLowerCase()
+    date = new Date
+    ref = Souji.child(toYmDate(date))
+    ref.push().set {
+      user: user,
+      spot: res.match[2] || '',
+      created_date: toYmdDate(date),
+      created_time: tohhmmTime(date),
+      created: date.getTime() }
+    res.send "thx #{user}"
+
+  robot.respond /掃除集計.* ?(\d+\/\d+)?/i, (res) ->
+    term = res.match[2] || toYmDate(new Date)
+    ref = Souji.child(term)
+    ref.once "value", (data) ->
+      message = []
+      souji = {}
+      values = data.val()
+      Object.keys(values).forEach (key) ->
+        v = values[key]
+        souji[v.user] = 0 if !souji[v.user]
+        souji[v.user] += 1
+      Object.keys(souji).forEach (user) ->
+        message.push "#{user} #{souji[user]}"
+      res.send message.join '\n'
+
   robot.respond /task clear/i, (res) ->
     robot.logger.info res
     user = res.message.user.name.toLowerCase()
     key = "#{user}Task"
     robot.brain.remove(key)
-
-  robot.respond /task (\d+) del/i, (res) ->
-    i = res.match[1]
-    user = res.message.user.name.toLowerCase()
-    key = "#{user}Task"
-    tasks = robot.brain.get(key) ? [] # keyを元に全要素を持ってくる。なければ空Objectをセット
-    task = tasks[i]
-    tasks.splice(i, 1)
-    robot.brain.set key, tasks
-    res.send "del #{task.task}"
 
   robot.respond /task$/i, (res) ->
     user = res.message.user.name.toLowerCase()
