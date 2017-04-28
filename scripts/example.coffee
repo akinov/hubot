@@ -64,6 +64,9 @@ module.exports = (robot) ->
       created: date.getTime() }
     res.send "ok"
 
+  robot.respond /(smoking|たばこ|タバコ|煙草)/i, (res) ->
+    res.send ":no_smoking:"
+
   robot.respond /(souji|soji|掃除|そうじ)\s(.+)?/i, (res) ->
     user = res.message.user.name.toLowerCase()
     date = new Date
