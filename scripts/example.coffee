@@ -1,6 +1,6 @@
 # Commands:
-#   掃除した時 `neko souji トイレ` or `neko 掃除　ゴミ`
-#   報告した数の確認 `neko 掃除集計` <= 当月の集計 or `neko 掃除集計 2017/04` <= 月を指定した集計
+#   報告した数の確認\n  `neko 掃除集計`\n  `neko 掃除集計 2017/04` <= 月を指定した集計
+#   掃除した時\n  `neko souji トイレ`\n  `neko 掃除　ゴミ`
 toYmDate = (date) ->
   Y = date.getFullYear()
   m = ('0' + (date.getMonth() + 1)).slice(-2)
