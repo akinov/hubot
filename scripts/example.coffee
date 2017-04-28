@@ -63,7 +63,7 @@ module.exports = (robot) ->
       created: date.getTime() }
     res.send "ok"
 
-  robot.respond /(souji|soji|掃除|そうじ)\s?(.+)?/i, (res) ->
+  robot.respond /(souji|soji|掃除|そうじ)\s(.+)?/i, (res) ->
     user = res.message.user.name.toLowerCase()
     date = new Date
     ref = Souji.child(toYmDate(date))
