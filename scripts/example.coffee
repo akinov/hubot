@@ -23,6 +23,17 @@ beginnigOfDay = (date) ->
 endOfDay = (date) ->
   date.setHours(23,59,59,999)
 
+summarySpot = (spot) ->
+  if spot.match(/toire|トイレ|といれ|:toilet:/i)
+    return ':toilet:'
+  else if spot.match(/gomi|ゴミ|ごみ/i)
+    return ':put_litter_in_its_place:'
+  else if spot.match(/掃除機|そうじき|床|ゆか|部屋|へや/i)
+    return ':cyclone:'
+  else
+    return spot
+
+
 firebase = require('firebase')
 config = {
   apiKey: process.env.FIREBASE_API_KEY
@@ -58,7 +69,7 @@ module.exports = (robot) ->
     ref = Souji.child(toYmDate(date))
     ref.push().set {
       user: user,
-      spot: res.match[2] || '',
+      spot: summarySpot(res.match[2] || ''),
       created_date: toYmdDate(date),
       created_time: tohhmmTime(date),
       created: date.getTime() }
