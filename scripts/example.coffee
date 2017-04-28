@@ -82,7 +82,9 @@ module.exports = (robot) ->
       message = []
       souji = {}
       values = data.val()
-      return false if !values
+      if !values
+        res.send 'データがないよ'
+        return false
       Object.keys(values).forEach (key) ->
         v = values[key]
         souji[v.user] = 0 if !souji[v.user]
