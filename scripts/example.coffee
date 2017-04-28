@@ -75,13 +75,14 @@ module.exports = (robot) ->
       created: date.getTime() }
     res.send "thx #{user}"
 
-  robot.respond /掃除集計.*\s?(\d+\/\d+)?/i, (res) ->
-    term = res.match[2] || toYmDate(new Date)
+  robot.respond /掃除集計\S*\s?(\d+\/\d+)?/i, (res) ->
+    term = res.match[1] || toYmDate(new Date)
     ref = Souji.child(term)
     ref.once "value", (data) ->
       message = []
       souji = {}
       values = data.val()
+      return false if !values
       Object.keys(values).forEach (key) ->
         v = values[key]
         souji[v.user] = 0 if !souji[v.user]
