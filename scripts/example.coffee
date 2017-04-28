@@ -52,7 +52,7 @@ module.exports = (robot) ->
       created: date.getTime() }
     res.send "ok"
 
-  robot.respond /(souji|soji|掃除|そうじ) (.+)?/i, (res) ->
+  robot.respond /(souji|soji|掃除|そうじ)\s?(.+)?/i, (res) ->
     user = res.message.user.name.toLowerCase()
     date = new Date
     ref = Souji.child(toYmDate(date))
@@ -64,7 +64,7 @@ module.exports = (robot) ->
       created: date.getTime() }
     res.send "thx #{user}"
 
-  robot.respond /掃除集計.* ?(\d+\/\d+)?/i, (res) ->
+  robot.respond /掃除集計.*\s?(\d+\/\d+)?/i, (res) ->
     term = res.match[2] || toYmDate(new Date)
     ref = Souji.child(term)
     ref.once "value", (data) ->
