@@ -1,4 +1,6 @@
-# 時刻を受け取ってYYYY-mm-dd形式で返す
+# Commands:
+#   掃除した時 `neko souji トイレ` or `neko 掃除　ゴミ`
+#   報告した数の確認 `neko 掃除集計` <= 当月の集計 or `neko 掃除集計 2017/04` <= 月を指定した集計
 toYmDate = (date) ->
   Y = date.getFullYear()
   m = ('0' + (date.getMonth() + 1)).slice(-2)
@@ -11,7 +13,6 @@ toYmdDate = (date) ->
   d = ('0' + date.getDate()).slice(-2)
   return "#{Y}/#{m}/#{d}"
 
-# 時刻を受け取ってhh:mm形式で返す
 tohhmmTime = (date) ->
   hh = ('0' + date.getHours()).slice(-2)
   mm = ('0' + date.getMinutes()).slice(-2)
