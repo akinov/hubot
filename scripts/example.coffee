@@ -29,7 +29,7 @@ summarySpot = (spot) ->
     return ':toilet:'
   else if spot.match(/gomi|ゴミ|ごみ/i)
     return ':put_litter_in_its_place:'
-  else if spot.match(/掃除機|そうじき|床|ゆか|部屋|へや/i)
+  else if spot.match(/掃除機|そうじき|床|ゆか|部屋|へや|片付け/i)
     return ':cyclone:'
   else
     return spot
