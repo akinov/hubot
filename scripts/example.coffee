@@ -27,7 +27,7 @@ endOfDay = (date) ->
 summarySpot = (spot) ->
   if spot.match(/toire|トイレ|といれ|:toilet:/i)
     return ':toilet:'
-  else if spot.match(/gomi|ゴミ|ごみ/i)
+  else if spot.match(/gomi|ゴミ|ごみ|袋/i)
     return ':put_litter_in_its_place:'
   else if spot.match(/掃除機|そうじき|床|ゆか|部屋|へや|片付け/i)
     return ':cyclone:'
