@@ -49,6 +49,7 @@ db = firebase.database()
 Task = db.ref "tasks"
 TimeTracker = db.ref "timeTrackers"
 Souji = db.ref "soujis"
+Mizu = db.ref "mizu"
 
 
 module.exports = (robot) ->
@@ -74,6 +75,17 @@ module.exports = (robot) ->
     ref.push().set {
       user: user,
       spot: summarySpot(res.match[2] || ''),
+      created_date: toYmdDate(date),
+      created_time: tohhmmTime(date),
+      created: date.getTime() }
+    res.send "thx #{user}"
+
+  robot.respond /^(水やり|みずやり|mizu|水)$/i, (res) ->
+    user = res.message.user.name.toLowerCase()
+    date = new Date
+    ref = Mizu.child(toYmDate(date))
+    ref.push().set {
+      user: user,
       created_date: toYmdDate(date),
       created_time: tohhmmTime(date),
       created: date.getTime() }
