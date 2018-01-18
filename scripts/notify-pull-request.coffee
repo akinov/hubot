@@ -63,9 +63,9 @@ checkPullRequests = -> new Promise (resolve, reject) ->
       reviewStates = eachReviewStates[index]
 
       [
-        "#{emo.sample()} <@#{pr.user.login}> の「#{pr.title.slice(0, 20)}... (#{pr.html_url})」: "
-        (for userName        in requestedReviewers then "<@#{userName}> のレビューを待ってるよ！").join ''
-        (for userName, state of reviewStates       then "<@#{userName}> が#{translation[state]}したよ！").join ''
+        "#{emo.sample()} @#{pr.user.login} の「#{pr.title.slice(0, 20)}... (#{pr.html_url})」: "
+        (for userName        in requestedReviewers then "@#{userName} のレビューを待ってるよ！").join ''
+        (for userName, state of reviewStates       then "@#{userName} が#{translation[state]}したよ！").join ''
       ].join('')
   .catch (result) ->
     reject result
