@@ -3,8 +3,7 @@
 #
 # Configuration:
 #   GITHUB_TOKEN
-#   REPO_OWNER
-#   REPO_NAME
+#   REPO_PATHS "owner_name/repo_name_1,owner_name/repo_name_2,other_owner_name/repo_name_3"
 #   DEVELOPER_ROOM_NAME
 #
 # Dependencies:
@@ -26,26 +25,43 @@ github.authenticate
   type: 'token'
   token: process.env.GITHUB_TOKEN
 
-fetchEvents = ({per_page})-> new Promise (resolve, reject) ->
+# ower_name/repo_name1,ower_name/repo_name2,...
+repoPaths = process.env.REPO_PATHS.split(',')
+  .map (path)->
+    path.split('/')
+  .map ([owner, repo]) ->
+    {owner, repo}
+
+fetchEvents = ({owner, repo, per_page})-> new Promise (resolve, reject) ->
   github.issues.getEventsForRepo
-    owner: process.env.REPO_OWNER
-    repo: process.env.REPO_NAME
+    owner: owner
+    repo: repo
     per_page: per_page or 30
   .then (result) ->
-    resolve result
+    resolve result.data
   .catch (result) ->
     reject result
 
-module.exports = (robot) ->
+fetchAllRepoEvents = ({per_page}) -> new Promise (resolve, reject) ->
+  promises = repoPaths.map ({repo, owner})-> fetchEvents({repo, owner, per_page})
+  Promise.all(promises)
+    .then (results) ->
+      resolve results.flatten()
+    .catch (results) ->
+      resolve results
 
+Array.prototype.flatten = -> @reduce(((sum, item) => sum.concat(item)), [])
+
+
+module.exports = (robot) ->
 
   robot.respond /mention_check (.+)/i, (res) ->
     name = res.match[1]
     yesterday = moment().subtract(1, 'day')
     res.send "#{yesterday.format('M月D日(ddd)HH時mm分')}以降の#{name}あてメンションをチェックします...."
 
-    fetchEvents(per_page: 200).then (messages) ->
-      mentioned = messages.data
+    fetchAllRepoEvents(per_page: 100).then (messages) ->
+      mentioned = messages
         .filter(({event})-> event is 'mentioned')
         .filter(({created_at})-> yesterday.isBefore created_at)
         .filter(({actor})-> actor.login.toLowerCase() is name.toLowerCase())
@@ -67,12 +83,12 @@ module.exports = (robot) ->
     # フェッチ時間を保存
     robot.brain.set brainKey, moment().format()
 
-    fetchEvents(per_page: 50).then (messages) ->
-      mentioned = messages.data
+    fetchAllRepoEvents(per_page: 50).then (messages) ->
+      mentioned = messages
         .filter(({event})-> event is 'mentioned')
         .filter(({created_at})-> lastFetched.isBefore created_at)
         .map (d)->
-          "@#{d.actor.login} :eye: #{d.issue.html_url} :watch: (#{moment(d.created_at).format('M月D日(ddd)HH時mm分')}) "
+          "@#{d.actor.login} チェック！ :eye: #{d.issue.html_url} (#{moment(d.created_at).format('M月D日(ddd)HH時mm分')})"
       mentioned.forEach (m)-> robot.messageRoom process.env.DEVELOPER_ROOM_NAME, m
   , null, true
 
