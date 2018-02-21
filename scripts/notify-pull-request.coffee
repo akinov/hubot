@@ -23,23 +23,10 @@ github.authenticate
   type: 'token'
   token: process.env.GITHUB_TOKEN
 
-emo = [
-  "🤩"
-  "😺"
-  "🙌"
-  "👶"
-  "🐱"
-  "🐙"
-  "🍣"
-  "✨"
-]
-
 translation =
   APPROVED: "承認"
   COMMENTED: "コメント"
   CHANGES_REQUESTED: "改善アドバイス"
-
-emo.sample = -> @[Math.floor Math.random() * @length]
 
 checkPullRequests = -> new Promise (resolve, reject) ->
   prs = null
@@ -63,7 +50,7 @@ checkPullRequests = -> new Promise (resolve, reject) ->
       reviewStates = eachReviewStates[index]
 
       [
-        "#{emo.sample()} @#{pr.user.login} の「#{pr.title.slice(0, 20)}... (#{pr.html_url})」: "
+        ":octocat: @#{pr.user.login} のプルリク「#{pr.title.slice(0, 20)}... (#{pr.html_url})」: "
         (for userName        in requestedReviewers then "@#{userName} のレビューを待ってるよ！").join ''
         (for userName, state of reviewStates       then "@#{userName} が#{translation[state]}したよ！").join ''
       ].join('')
@@ -98,16 +85,12 @@ module.exports = (robot) ->
       if messages.length isnt 0
         res.send messages.join("\n")
       else
-        res.send "#{emo.sample()}オープンなプルリクはありません#{emo.sample()}"
+        res.send "オープンなプルリクはありません"
     .catch (e) ->
       res.send "失敗しました"
       console.error e
 
-  new CronJob '0 0 10,13,16,18 * * 1-5', ->
+  new CronJob '0 0,15,30,45 10-19 * * 1-5', ->
     checkPullRequests().then (messages)->
-      robot.messageRoom process.env.DEVELOPER_ROOM_NAME, "プルリクチェックの時間です"
-      if messages.length isnt 0
-        robot.messageRoom process.env.DEVELOPER_ROOM_NAME, messages.join("\n")
-      else
-        robot.messageRoom process.env.DEVELOPER_ROOM_NAME, "#{emo.sample()}オープンなプルリクはありません#{emo.sample()}"
+      messages.forEach (message)-> robot.messageRoom process.env.DEVELOPER_ROOM_NAME, message
   , null, true
