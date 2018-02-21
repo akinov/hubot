@@ -75,8 +75,7 @@ module.exports = (robot) ->
 
   brainKey = 'last_fetched_github_mention'
 
-  # 10分おきに起動
-  new CronJob '0 0,10,20,30,40,50 * * * *', ->
+  new CronJob '0 0,5,10,15,20,25,30,35,40,45,50,55 * * * *', ->
     rawLastFetched = robot.brain.get(brainKey) ? moment().subtract(1, 'hour').format()
     lastFetched = moment(rawLastFetched)
 
@@ -88,7 +87,8 @@ module.exports = (robot) ->
         .filter(({event})-> event is 'mentioned')
         .filter(({created_at})-> lastFetched.isBefore created_at)
         .map (d)->
-          "@#{d.actor.login} チェック！ :eye: #{d.issue.html_url} (#{moment(d.created_at).format('M月D日(ddd)HH時mm分')})"
-      mentioned.forEach (m)-> robot.messageRoom process.env.DEVELOPER_ROOM_NAME, m
+          ":eye: @#{d.actor.login} にメンション 「#{d.issue.title.slice(0,20)}... (#{d.issue.html_url})」 (#{moment(d.created_at).format('M月D日(ddd)HH時mm分')})"
+        .forEach (m)->
+          robot.messageRoom process.env.DEVELOPER_ROOM_NAME, m
   , null, true
 
