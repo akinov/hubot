@@ -28,7 +28,7 @@ translation =
   COMMENTED: "コメント"
   CHANGES_REQUESTED: "改善アドバイス"
 
-checkPullRequests = -> new Promise (resolve, reject) ->
+checkPullRequests = (filtering = -> true )-> new Promise (resolve, reject) ->
   prs = null
 
   github.pullRequests.getAll
@@ -45,7 +45,7 @@ checkPullRequests = -> new Promise (resolve, reject) ->
     Promise.all promises
   .then (eachReviewStates) ->
 
-    resolve prs.map (pr, index)->
+    resolve prs.filter(filtering).map (pr, index)->
       requestedReviewers = pr.requested_reviewers.map (u) -> u.login
       reviewStates = eachReviewStates[index]
 
@@ -91,6 +91,6 @@ module.exports = (robot) ->
       console.error e
 
   new CronJob '0 0,15,30,45 10-19 * * 1-5', ->
-    checkPullRequests().then (messages)->
+    checkPullRequests(({title})-> not title.startsWith('(wip)')).then (messages)->
       messages.forEach (message)-> robot.messageRoom process.env.DEVELOPER_ROOM_NAME, message
   , null, true
