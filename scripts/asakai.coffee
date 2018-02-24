@@ -87,13 +87,13 @@ module.exports = (robot) ->
     res.send "removed #{name}"
     res.send JSON.stringify newMembers
 
-  robot.respond /asakai_members gacha$/i, (res) ->
+  robot.respond /asakai_members gacha(\d*)$/i, (res) ->
     members = robot.brain.get(redisKey) or []
-    res.send "@#{members.random()?.name}"
-
-  robot.respond /asakai_members gacha_gacha$/i, (res) ->
-    members = robot.brain.get(redisKey) or []
-    res.send members.random(members.length).map(({name})-> "@#{name}" ).join(' -> ')
+    count = Number(res.match[1] || 1)
+    if count in [1, NaN]
+      res.send "@#{members.random()?.name}"
+    else
+      res.send members.random(count).map(({name} = {name: null})-> "@#{name}" ).join(' -> ')
 
   robot.respond /gacha (.+)$/i, (res) ->
     items = res.match[1].split(/\s+/)
