@@ -13,7 +13,7 @@
 #   hubot asakai_members add <name> - 朝会のメンバーを追加
 #   hubot asakai_members rm <name> - 朝会のメンバーを削除
 #   hubot asakai_members gacha - 朝会メンバーガチャ
-#   hubot asakai_members gacha_gacha - 朝会メンバーリストガチャガチャ
+#   hubot asakai_members gacha3 - 朝会メンバー3連ガチャ
 #   hubot gacha <item1 item2 item3> - ガチャ
 
 moment = require 'moment'
