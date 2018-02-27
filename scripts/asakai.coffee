@@ -13,13 +13,25 @@
 #   hubot asakai_members add <name> - 朝会のメンバーを追加
 #   hubot asakai_members rm <name> - 朝会のメンバーを削除
 #   hubot asakai_members gacha - 朝会メンバーガチャ
+#   hubot asakai_members gacha3 - 朝会メンバー3連ガチャ
+#   hubot gacha <item1 item2 item3> - ガチャ
 
 moment = require 'moment'
 {CronJob} = require 'cron'
 moment.locale('ja')
 
 # Sorry
-Array.prototype.random = -> @[Math.floor(Math.random() * @length)]
+Array.prototype.random = (number = 1)->
+  dupped = @concat()
+  result = []
+  [0...number].forEach ->
+    index = Math.floor(Math.random() * dupped.length)
+    bingo = dupped.splice(index, 1)[0]
+    result.push bingo
+  if number is 1
+    result[0]
+  else
+    result
 
 gobi = [
   "ですよ！"
@@ -75,9 +87,17 @@ module.exports = (robot) ->
     res.send "removed #{name}"
     res.send JSON.stringify newMembers
 
-  robot.respond /asakai_members gacha/i, (res) ->
+  robot.respond /asakai_members gacha(\d*)$/i, (res) ->
     members = robot.brain.get(redisKey) or []
-    res.send members.random()?.name
+    count = Number(res.match[1] || 1)
+    if count in [1, NaN]
+      res.send "@#{members.random()?.name}"
+    else
+      res.send members.random(count).map(({name} = {name: null})-> "@#{name}" ).join(' -> ')
+
+  robot.respond /gacha (.+)$/i, (res) ->
+    items = res.match[1].split(/\s+/)
+    res.send items.random()
 
   #robot.messageRoom = (_, m)-> console.log m
   new CronJob '0 30 12 * * 1-5', ->
@@ -87,8 +107,7 @@ module.exports = (robot) ->
     @channel :cat: 日報を作成しましょう :cat:
     ```
     *やったこと*
-    - done
-    →  ％くらい
+    - done →  ％
 
     *やること*
     - doing
@@ -108,4 +127,3 @@ module.exports = (robot) ->
     members = robot.brain.get(redisKey) or []
     robot.messageRoom process.env.ASAKAI_ROOM_NAME, "@channel 日次会の時間#{gobi.random()} 今日の司会は @#{members.random()?.name} お願いします！"
   , null, true
-
