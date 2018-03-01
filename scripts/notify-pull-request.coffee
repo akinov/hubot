@@ -8,18 +8,16 @@
 #   DEVELOPER_ROOM_NAME
 #
 # Dependencies:
-#   "github": "^12.1.0"
+#   "@octokit/rest": "^14.0.9"
 #   "cron": "^1.3.0"
 #
 # Commands:
 #   hubot prs - プルリクお知らせ
 
-GitHubApi = require 'github'
+octokit = require('@octokit/rest')()
 {CronJob} = require 'cron'
 
-github = new GitHubApi
-
-github.authenticate
+octokit.authenticate
   type: 'token'
   token: process.env.GITHUB_TOKEN
 
@@ -31,7 +29,7 @@ translation =
 checkPullRequests = (filtering = -> true )-> new Promise (resolve, reject) ->
   prs = null
 
-  github.pullRequests.getAll
+  octokit.pullRequests.getAll
     owner: process.env.REPO_OWNER
     repo: process.env.REPO_NAME
     state: 'open'
@@ -47,6 +45,7 @@ checkPullRequests = (filtering = -> true )-> new Promise (resolve, reject) ->
 
     resolve prs.filter(filtering).map (pr, index)->
       requestedReviewers = pr.requested_reviewers.map (u) -> u.login
+      # BUG: 順番保証されてない
       reviewStates = eachReviewStates[index]
 
       [
@@ -59,7 +58,7 @@ checkPullRequests = (filtering = -> true )-> new Promise (resolve, reject) ->
 
 # レビュー中レビュワーの最新状態を取得する
 fetchLastReviewStates = (number, reviewee)-> new Promise (resolve, reject) ->
-  github.pullRequests.getReviews
+  octokit.pullRequests.getReviews
     owner: process.env.REPO_OWNER
     repo: process.env.REPO_NAME
     number: number

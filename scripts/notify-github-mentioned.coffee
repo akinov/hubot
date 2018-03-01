@@ -7,21 +7,19 @@
 #   DEVELOPER_ROOM_NAME
 #
 # Dependencies:
-#   "github": "^12.1.0"
+#   "@octokit/rest": "^14.0.9"
 #   "cron": "^1.3.0"
 #   "moment": "^2.20.1"
 #
 # Commands:
 #   hubot mention_check user_id - 昨日から今までのメンションをお知らせ
 
-GitHubApi = require 'github'
+octokit = require('@octokit/rest')()
 moment = require 'moment'
 {CronJob} = require 'cron'
 moment.locale('ja')
 
-github = new GitHubApi
-
-github.authenticate
+octokit.authenticate
   type: 'token'
   token: process.env.GITHUB_TOKEN
 
@@ -33,7 +31,7 @@ repoPaths = process.env.REPO_PATHS.split(',')
     {owner, repo}
 
 fetchEvents = ({owner, repo, per_page})-> new Promise (resolve, reject) ->
-  github.issues.getEventsForRepo
+  octokit.issues.getEventsForRepo
     owner: owner
     repo: repo
     per_page: per_page or 30
@@ -51,7 +49,6 @@ fetchAllRepoEvents = ({per_page}) -> new Promise (resolve, reject) ->
       resolve results
 
 Array.prototype.flatten = -> @reduce(((sum, item) => sum.concat(item)), [])
-
 
 module.exports = (robot) ->
 
