@@ -30,6 +30,7 @@ repoPaths = process.env.REPO_PATHS.split(',')
   .map ([owner, repo]) ->
     {owner, repo}
 
+# 複数リポジトリのイベントを一括で取得する
 fetchEvents = ({owner, repo, per_page})-> new Promise (resolve, reject) ->
   octokit.issues.getEventsForRepo
     owner: owner
@@ -40,6 +41,7 @@ fetchEvents = ({owner, repo, per_page})-> new Promise (resolve, reject) ->
   .catch (result) ->
     reject result
 
+# 1リポジトリのイベントを取得する
 fetchAllRepoEvents = ({per_page}) -> new Promise (resolve, reject) ->
   promises = repoPaths.map ({repo, owner})-> fetchEvents({repo, owner, per_page})
   Promise.all(promises)
@@ -84,7 +86,7 @@ module.exports = (robot) ->
         .filter(({event})-> event is 'mentioned')
         .filter(({created_at})-> lastFetched.isBefore created_at)
         .map (d)->
-          ":eye: @#{d.actor.login} にメンション 「#{d.issue.title.slice(0,20)}... (#{d.issue.html_url})」 (#{moment(d.created_at).format('M月D日(ddd)HH時mm分')})"
+          ":eye: @#{d.actor.login} にメンション！ (#{moment(d.created_at).format('M月D日(ddd)HH時mm分')})\n  「#{d.issue.title} (#{d.issue.html_url})」"
         .forEach (m)->
           robot.messageRoom process.env.DEVELOPER_ROOM_NAME, m
   , null, true
