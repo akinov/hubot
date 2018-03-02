@@ -7,21 +7,19 @@
 #   DEVELOPER_ROOM_NAME
 #
 # Dependencies:
-#   "github": "^12.1.0"
+#   "@octokit/rest": "^14.0.9"
 #   "cron": "^1.3.0"
 #   "moment": "^2.20.1"
 #
 # Commands:
 #   hubot mention_check user_id - 昨日から今までのメンションをお知らせ
 
-GitHubApi = require 'github'
+octokit = require('@octokit/rest')()
 moment = require 'moment'
 {CronJob} = require 'cron'
 moment.locale('ja')
 
-github = new GitHubApi
-
-github.authenticate
+octokit.authenticate
   type: 'token'
   token: process.env.GITHUB_TOKEN
 
@@ -32,8 +30,9 @@ repoPaths = process.env.REPO_PATHS.split(',')
   .map ([owner, repo]) ->
     {owner, repo}
 
+# 複数リポジトリのイベントを一括で取得する
 fetchEvents = ({owner, repo, per_page})-> new Promise (resolve, reject) ->
-  github.issues.getEventsForRepo
+  octokit.issues.getEventsForRepo
     owner: owner
     repo: repo
     per_page: per_page or 30
@@ -42,6 +41,7 @@ fetchEvents = ({owner, repo, per_page})-> new Promise (resolve, reject) ->
   .catch (result) ->
     reject result
 
+# 1リポジトリのイベントを取得する
 fetchAllRepoEvents = ({per_page}) -> new Promise (resolve, reject) ->
   promises = repoPaths.map ({repo, owner})-> fetchEvents({repo, owner, per_page})
   Promise.all(promises)
@@ -51,7 +51,6 @@ fetchAllRepoEvents = ({per_page}) -> new Promise (resolve, reject) ->
       resolve results
 
 Array.prototype.flatten = -> @reduce(((sum, item) => sum.concat(item)), [])
-
 
 module.exports = (robot) ->
 
@@ -87,7 +86,7 @@ module.exports = (robot) ->
         .filter(({event})-> event is 'mentioned')
         .filter(({created_at})-> lastFetched.isBefore created_at)
         .map (d)->
-          ":eye: @#{d.actor.login} にメンション 「#{d.issue.title.slice(0,20)}... (#{d.issue.html_url})」 (#{moment(d.created_at).format('M月D日(ddd)HH時mm分')})"
+          ":eye: @#{d.actor.login} にメンション！ (#{moment(d.created_at).format('M月D日(ddd)HH時mm分')})\n  「#{d.issue.title} (#{d.issue.html_url})」"
         .forEach (m)->
           robot.messageRoom process.env.DEVELOPER_ROOM_NAME, m
   , null, true

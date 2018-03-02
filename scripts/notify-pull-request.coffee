@@ -8,18 +8,16 @@
 #   DEVELOPER_ROOM_NAME
 #
 # Dependencies:
-#   "github": "^12.1.0"
+#   "@octokit/rest": "^14.0.9"
 #   "cron": "^1.3.0"
 #
 # Commands:
 #   hubot prs - プルリクお知らせ
 
-GitHubApi = require 'github'
+octokit = require('@octokit/rest')()
 {CronJob} = require 'cron'
 
-github = new GitHubApi
-
-github.authenticate
+octokit.authenticate
   type: 'token'
   token: process.env.GITHUB_TOKEN
 
@@ -27,39 +25,43 @@ translation =
   APPROVED: "承認"
   COMMENTED: "コメント"
   CHANGES_REQUESTED: "改善アドバイス"
+  DISMISSED: "却下"
 
+# プルリクを取得する
 checkPullRequests = (filtering = -> true )-> new Promise (resolve, reject) ->
-  prs = null
+  pullRequests = null
 
-  github.pullRequests.getAll
+  octokit.pullRequests.getAll
     owner: process.env.REPO_OWNER
     repo: process.env.REPO_NAME
     state: 'open'
     sort: "updated"
     direction: "desc"
   .then (result) ->
-    prs = result.data
-    promises = prs.map (pr)->
+    pullRequests = result.data
+
+    # 各プルリクのレビューの詳細を取得
+    promises = pullRequests.map (pr)->
       fetchLastReviewStates pr.number, pr.user.login
 
     Promise.all promises
-  .then (eachReviewStates) ->
+  .then (result) ->
 
-    resolve prs.filter(filtering).map (pr, index)->
+    resolve pullRequests.filter(filtering).map (pr, index)->
       requestedReviewers = pr.requested_reviewers.map (u) -> u.login
-      reviewStates = eachReviewStates[index]
+      reviewStates = result.find((reviewState)-> reviewState.number is pr.number).reviewStates
 
       [
-        ":octocat: @#{pr.user.login} のプルリク「#{pr.title.slice(0, 20)}... (#{pr.html_url})」: "
-        (for userName        in requestedReviewers then "@#{userName} のレビューを待ってるよ！").join ''
-        (for userName, state of reviewStates       then "@#{userName} が#{translation[state]}したよ！").join ''
-      ].join('')
+        ":octocat: @#{pr.user.login} のプルリク「#{pr.title} (#{pr.html_url})」 "
+        (for userName        in requestedReviewers then "  @#{userName} のレビューを待ってるよ！").join '\n'
+        (for userName, state of reviewStates       then "  @#{userName} が#{translation[state]}したよ！").join '\n'
+      ].filter((item)-> item).join('\n')
   .catch (result) ->
     reject result
 
 # レビュー中レビュワーの最新状態を取得する
 fetchLastReviewStates = (number, reviewee)-> new Promise (resolve, reject) ->
-  github.pullRequests.getReviews
+  octokit.pullRequests.getReviews
     owner: process.env.REPO_OWNER
     repo: process.env.REPO_NAME
     number: number
@@ -74,7 +76,7 @@ fetchLastReviewStates = (number, reviewee)-> new Promise (resolve, reject) ->
         sum
       , {})
     # {"user1": "APPROVED", "user2": "COMMENTED"...}
-    resolve reviewStates
+    resolve {number, reviewStates}
 
   .catch (e)-> reject e
 
