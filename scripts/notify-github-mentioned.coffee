@@ -86,7 +86,7 @@ module.exports = (robot) ->
         .filter(({event})-> event is 'mentioned')
         .filter(({created_at})-> lastFetched.isBefore created_at)
         .map (d)->
-          ":eye: @#{d.actor.login} にメンション！ (#{moment(d.created_at).format('M月D日(ddd)HH時mm分')})\n  「#{d.issue.title} (#{d.issue.html_url})」"
+          ":eye: @#{d.actor.login} にメンション！ (#{moment(d.created_at).format('M月D日(ddd)HH時mm分')})\n | 「#{d.issue.title}」(#{d.issue.html_url})"
         .forEach (m)->
           robot.messageRoom process.env.DEVELOPER_ROOM_NAME, m
   , null, true
