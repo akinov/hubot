@@ -96,7 +96,7 @@ prettyPRReviews = (pr, reviewersState)->
     else
       prettied.push "| @#{userName} が#{translate state}したよ！"
 
-  if approvedCount isnt 0 and approvedCount is Object.keys(reviewersState).length
+  if (requestedReviewers.length is 0) and (approvedCount isnt 0) and (approvedCount is Object.keys(reviewersState).length)
     prettied.push "| @#{pr.user.login} 全員承認したよ！マージしましょう！"
 
   prettied.join('\n')
@@ -113,7 +113,7 @@ module.exports = (robot) ->
       res.send "失敗しました"
       console.error e
 
-  new CronJob '0 0,15,30,45 10-18 * * 1-5', ->
+  new CronJob '0 0,30 10-18 * * 1-5', ->
     checkPullRequests(({title})-> not title.startsWith('(wip)')).then (messages)->
       messages.forEach (message)-> robot.messageRoom process.env.DEVELOPER_ROOM_NAME, message
   , null, true
