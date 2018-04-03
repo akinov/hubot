@@ -81,7 +81,8 @@ fetchLastReviewStates = (number, reviewee)-> new Promise (resolve, reject) ->
 # pr: raw pull request object from GitHub API
 # reviewersState: {"user1": "APPROVED", "user2": "COMMENTED"...}
 prettyPRReviews = (pr, reviewersState)->
-  prettied = [":octocat: @#{pr.user.login} のプルリク「#{pr.title}」(#{pr.html_url})"]
+  #prettied = [":octocat: #{pr.user.login} のプルリク「#{pr.title}」(#{pr.html_url})"]
+  prettied = [":octocat: 「#{pr.title}」(#{pr.html_url})"]
 
   requestedReviewers = pr.requested_reviewers.map (u) -> u.login
   for userName in requestedReviewers
@@ -92,9 +93,9 @@ prettyPRReviews = (pr, reviewersState)->
     if state is "APPROVED"
       approvedCount += 1
       # 承認済みの人にはメンションしない
-      prettied.push  "| #{userName} が#{translate state}したよ！"
-    else
-      prettied.push "| @#{userName} が#{translate state}したよ！"
+      #prettied.push  "| #{userName} が#{translate state}したよ！"
+    #else
+    #  prettied.push "| #{userName} が#{translate state}したよ！"
 
   if (requestedReviewers.length is 0) and (approvedCount isnt 0) and (approvedCount is Object.keys(reviewersState).length)
     prettied.push "| @#{pr.user.login} 全員承認したよ！マージしましょう！"
