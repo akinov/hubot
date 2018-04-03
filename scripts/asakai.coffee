@@ -35,36 +35,6 @@ Array.prototype.random = (number = 1)->
   else
     result
 
-gobi = [
-  "ですよ！"
-  "です。"
-  "みたいです。"
-  "みたいですよ〜。"
-  "だ。"
-  "だ！"
-  "だよ。"
-  "だね。"
-  "っぽい。"
-  "っぽい！"
-  "ですわよ。"
-  "ですな。"
-  "でごわす。"
-  "ですなぁ。"
-]
-
-
-emos = [
-  "🤔"
-  "😶"
-  "😺"
-  "😸"
-  "😻"
-  "😿"
-  "😹"
-  "😽"
-  "😀"
-]
-
 BRAIN_KEYS_MEMBERS = 'members'
 BRAIN_KEYS_NOTICE = 'asakai_notice'
 
@@ -101,46 +71,3 @@ module.exports = (robot) ->
   robot.respond /gacha (.+)$/i, (res) ->
     items = res.match[1].split(/\s+/)
     res.send items.random()
-
-  robot.respond /asakai_note show/i, (res) ->
-    note = robot.brain.get(BRAIN_KEYS_NOTICE)
-    res.send JSON.stringify note
-
-  robot.respond /asakai_note change (.+)/i, (res) ->
-    note = res.match[1]
-    robot.brain.set(BRAIN_KEYS_NOTICE, note)
-    res.reply "覚えました"
-    res.send JSON.stringify note
-
-
-
-  #robot.messageRoom = (_, m)-> console.log m
-  new CronJob '0 30 12 * * 1-5', ->
-  #new CronJob '30 * * * * 1-5', ->
-    robot.messageRoom process.env.ASAKAI_ROOM_NAME, """
-    *---------- #{moment().format('M月D日(dddd)')} ----------*
-    @channel :cat: 日報を作成しましょう :cat:
-    ```
-    *やったこと*
-    - done →  ％
-
-    *やること*
-    - doing
-
-    *困ってること*
-    - とくになし
-
-    *頭の中*
-    - #{emos.random()}
-
-    ```
-    """
-  , null, true
-
-  new CronJob '0 15 14 * * 1-5', ->
-  #new CronJob '0 * * * * 1-5', ->
-    members = robot.brain.get(BRAIN_KEYS_MEMBERS) or []
-    robot.messageRoom process.env.ASAKAI_ROOM_NAME, "@channel 日次会の時間#{gobi.random()} 今日の司会は @#{members.random()?.name} お願いします！"
-    note = robot.brain.get(BRAIN_KEYS_NOTICE) or "忘れた"
-    robot.messageRoom process.env.ASAKAI_ROOM_NAME, "忘れちゃいけないこと: #{note}"
-  , null, true
