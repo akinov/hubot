@@ -86,23 +86,37 @@ prettyPRReviews = (pr, reviewersState)->
 
   requestedReviewers = pr.requested_reviewers.map (u) -> u.login
   for userName in requestedReviewers
-    prettied.push "| @#{userName} のレビューを待ってるよ！"
+    prettied.push "| @#{slackName(userName)} のレビューを待ってるよ！"
 
   approvedCount = 0
+  changesRequestedCount = 0
   for userName, state of reviewersState
     if state is "APPROVED"
       approvedCount += 1
       # 承認済みの人にはメンションしない
       #prettied.push  "| #{userName} が#{translate state}したよ！"
+    if state is "CHANGES_REQUESTED"
+      changesRequestedCount += 1
     #else
     #  prettied.push "| #{userName} が#{translate state}したよ！"
 
   if (requestedReviewers.length is 0) and (approvedCount isnt 0) and (approvedCount is Object.keys(reviewersState).length)
-    prettied.push "| @#{pr.user.login} 全員承認したよ！マージしましょう！"
+    prettied.push "| @#{slackName(pr.user.login)} 全員承認したよ！マージしましょう！"
+  if changesRequestedCount > 0
+    prettied.push "| @#{slackName(pr.user.login)} 変更リクエストがあるよ！確認しましょう！"
 
   prettied.join('\n')
 
+# FIXME
+slackName = null
+
 module.exports = (robot) ->
+  BRAIN_KEYS_MEMBERS = 'members'
+  slackName = (githubName)->
+    members = robot.brain.get(BRAIN_KEYS_MEMBERS) or []
+    member = members.find ({github})-> github is githubName
+    member?.name or githubName
+
   robot.respond /prs/i, (res) ->
     res.send 'プルリクチェックします...'
     checkPullRequests().then (messages) ->
